@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Socket, io } from "socket.io-client";
+import { io } from "socket.io-client";
 
-const URL = "http://localhost:3000"
+const URL = "wss://better-connect-signalling-api.glitch.me"
 
 export const Room = ({ name, localAudioTrack, localVideoTrack }: {
   name: string,
@@ -9,7 +9,6 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
   localVideoTrack: MediaStreamTrack | null,
 }) => {
   const [lobby, setLobby] = useState(true);
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [sendingPc, setSendingPc] = useState<null | RTCPeerConnection>(null);
   const [receivingPc, setReceivingPc] = useState<null | RTCPeerConnection>(null);
   const [remoteMediaStream, setRemoteMediaStream] = useState<null | MediaStream>(null);
@@ -23,6 +22,7 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
       setLobby(false);
       const pc = new RTCPeerConnection();
       setSendingPc(pc);
+      console.log(sendingPc)
       if (localVideoTrack) {
         pc.addTrack(localVideoTrack);
       }
@@ -61,8 +61,10 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
         remoteVideoRef.current.srcObject = stream;
       }
       setRemoteMediaStream(stream);
+      console.log(remoteMediaStream)
 
       setReceivingPc(pc);
+      console.log(receivingPc);
       pc.onicecandidate = async (e) => {
         if (e.candidate) {
           socket.emit("add-ice-candidate", {
@@ -81,6 +83,7 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
       setTimeout(() => {
         const track1 = pc.getTransceivers()[0].receiver.track;
         const track2 = pc.getTransceivers()[1].receiver.track;
+
         //@ts-ignore
         remoteVideoRef.current.srcObject.addTrack(track1);
         //@ts-ignore
@@ -115,8 +118,6 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
         })
       }
     })
-
-    setSocket(socket);
   }, [name])
 
   useEffect(() => {
