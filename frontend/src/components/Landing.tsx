@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react"
 import { Room } from "./Room";
 
 export const Landing = () => {
-  const [name, setName] = useState("");
   const [joined, setJoined] = useState(false);
   const [localVideoTrack, setLocalVideoTrack] = useState<null | MediaStreamTrack>(null);
   const [localAudioTrack, setLocalAudioTrack] = useState<null | MediaStreamTrack>(null);
@@ -31,15 +30,14 @@ export const Landing = () => {
 
   if (!joined) {
     return (
-      <div>
-        <video ref={videoRef} autoPlay />
-        <input type="text" value={name} onChange={(e) => {
-          setName(e.target.value);
-        }} />
-        <button onClick={() => { setJoined(true) }}>Join</button>
-      </div >
+      <div className="w-screen h-screen bg-slate-200 flex justify-center items-center">
+        <div className=" flex flex-col shadow-2xl">
+          <video className="rounded-t-xl" ref={videoRef} autoPlay />
+          <button className="p-5 bg-teal-500 hover:bg-teal-600 transition-colors rounded-b-lg" onClick={() => { setJoined(true) }}>Join</button>
+        </div>
+      </div>
     )
   } else {
-    return (<Room name={name} localAudioTrack={localAudioTrack} localVideoTrack={localVideoTrack} />)
+    return (<Room localAudioTrack={localAudioTrack} localVideoTrack={localVideoTrack} />)
   }
 }

@@ -3,8 +3,7 @@ import { io } from "socket.io-client";
 
 const URL = "wss://better-connect-signalling-api.glitch.me"
 
-export const Room = ({ name, localAudioTrack, localVideoTrack }: {
-  name: string,
+export const Room = ({ localAudioTrack, localVideoTrack }: {
   localAudioTrack: MediaStreamTrack | null,
   localVideoTrack: MediaStreamTrack | null,
 }) => {
@@ -28,6 +27,13 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
       }
       if (localAudioTrack) {
         pc.addTrack(localAudioTrack);
+      }
+
+      pc.onconnectionstatechange = (e) => {
+        const rtc = e.srcElement as RTCPeerConnection
+        if (rtc.connectionState === 'disconnected') {
+          handle()
+        }
       }
 
       pc.onicecandidate = async (e) => {
@@ -61,7 +67,6 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
         remoteVideoRef.current.srcObject = stream;
       }
       setRemoteMediaStream(stream);
-      console.log(remoteMediaStream)
 
       setReceivingPc(pc);
       console.log(receivingPc);
@@ -127,14 +132,28 @@ export const Room = ({ name, localAudioTrack, localVideoTrack }: {
       }
       localVideoRef.current.play();
     }
-  }, [localVideoRef])
+  }, [localVideoRef, localVideoTrack])
+
+  function handle() {
+    window.location.reload()
+  }
 
   return (
-    <div>
-      Hi {name}
-      {lobby ? "Waiting to connect you to someone" : null}
-      <video autoPlay width={400} height={400} ref={localVideoRef} />
-      <video autoPlay width={400} height={400} ref={remoteVideoRef} />
+    <div className="w-screen h-screen bg-slate-200 flex flex-row justify-center items-center">
+      <div className="w-[30%] h-full bg-gray-900">
+        <div className="w-full h-[45%] flex justify-center items-center">
+          <video className="border-2 w-[90%]" autoPlay width={400} height={400} ref={localVideoRef} />
+        </div>
+        <div className="w-full h-[45%] flex justify-center items-center">
+          <video className="border-2 w-[90%] bg-gray-950" autoPlay width={400} height={400} ref={remoteVideoRef} />
+        </div>
+        <div className="flex flex-row bg-gray-900 h-[10%] text-white">
+          <button onClick={handle} className="w-full h-full flex justify-center items-center bg-gray-800 hover:bg-gray-900 transition-colors">STOP</button>
+        </div>
+      </div>
+      <div className="w-[70%] h-full bg-gray-950 text-white">
+        {lobby ? "Waiting to connect you to someone" : null}
+      </div>
     </div>
   )
 }
